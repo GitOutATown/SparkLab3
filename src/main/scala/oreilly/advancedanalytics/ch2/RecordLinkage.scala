@@ -17,9 +17,7 @@ object RecordLinkage {
 		println("---- take_10:")
 		take_10.foreach(println)
 		
-		//val take_10_notHeaderLines = take_10.filter(!isHeader(_))
-		//val head = rawblocks.take(5)
-		//val mds_local = take_10.filter(!isHeader(_)).map(parse(_))
+		val mds_local = take_10.filter(!isHeader(_)).map(parse(_))
 		
 		val all_parsed = rawblocks.filter(!isHeader(_)).map(parse(_))
 		all_parsed.cache
@@ -34,7 +32,10 @@ object RecordLinkage {
 		println("----- all_head:")
 		all_head.foreach(println)
 		
+		// Aggregation vs. GroupedBy
 		
+		val grouped = mds_local.groupBy(md => md.matched)
+		grouped.mapValues(_.size).foreach(println)
 	}
 	
 	def isHeader(line: String): Boolean = line.contains("id_1")
