@@ -1,8 +1,11 @@
 package oreilly.advancedanalytics.ch2
 
+import java.lang.Double.isNaN
+
 import org.apache.spark._
 import akka.dispatch.Foreach
-//import org.apache.spark.rdd.RDD
+import org.apache.spark.rdd.RDD
+import org.apache.spark.util.StatCounter
 
 object RecordLinkage {
   
@@ -13,11 +16,11 @@ object RecordLinkage {
 	
 		val rawblocks = sc.textFile("../../Spark/workspace_tuts/Advanced_Analytics_with_Spark_workspace_1/linkage")
 		
-		val take_10 = rawblocks.take(10)
+		val first_take_10 = rawblocks.take(10)
 		println("---- take_10:")
-		take_10.foreach(println)
+		first_take_10.foreach(println)
 		
-		val mds_local = take_10.filter(!isHeader(_)).map(parse(_))
+		val first_take_10_parsed = first_take_10.filter(!isHeader(_)).map(parse(_))
 		
 		val all_parsed = rawblocks.filter(!isHeader(_)).map(parse(_))
 		all_parsed.cache
@@ -28,14 +31,20 @@ object RecordLinkage {
 	    println("all_count: " + all_count)
 		*/
 		
-		val all_head = all_parsed.take(10)
-		println("----- all_head:")
-		all_head.foreach(println)
+		val all_parsed_head = all_parsed.take(10)
+		println("----- parsed_head:")
+		all_parsed_head.foreach(println)
 		
 		// Aggregation vs. GroupedBy
 		
-		val grouped = mds_local.groupBy(md => md.matched)
+		val grouped = first_take_10_parsed.groupBy(md => md.matched)
+		println("----- first_take_parsed_head:")
 		grouped.mapValues(_.size).foreach(println)
+		
+		// BLOWING UP! NEED TO DIAGNOSE THIS. MEMORY PROBLEM?
+		//val matchCounts = all_parsed.map(md => md.matched).countByValue()
+		val matchCounts = all_parsed.map(md => md.matched).countByValue()
+		println("matchCounts: " + matchCounts)
 	}
 	
 	def isHeader(line: String): Boolean = line.contains("id_1")
