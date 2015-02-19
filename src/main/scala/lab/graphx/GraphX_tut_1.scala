@@ -23,7 +23,8 @@ object GraphX_tut_1 extends App {
 	    Array(
 	        Edge(3L, 7L, "collab"),    
 	        Edge(5L, 3L, "advisor"),
-            Edge(2L, 5L, "colleague"), 
+            Edge(2L, 5L, "colleague"),
+            Edge(2L, 5L, "friend"),
             Edge(5L, 7L, "pi")
         )
     )
@@ -40,8 +41,29 @@ object GraphX_tut_1 extends App {
     // Count all the edges where src > dst
     val countSrcGreaterDst = graph.edges.filter(e => e.srcId > e.dstId).count
     
-    // Diagnostic
-    println("postDocs: " + postDocs + "\ncountSrcGreaterDst: " + countSrcGreaterDst)
+    println("postDocs: " + postDocs 
+        + "\ncountSrcGreaterDst: " + countSrcGreaterDst)
+    
+    // All relationships that are friends
+    val friends = graph.edges.filter(e => e.attr == "friend")
+    
+    friends.foreach(e => println("friend attr: " + e.attr 
+        + "\nsrcId: " + e.srcId + "\ndstId: " + e.dstId))
+    
+    println("---- people -----")
+    graph.vertices.foreach(v => println("v._1:" + v._1 + " v._2:" + v._2))
+    
+    println("------- for loop --------")
+    for {
+  		person <- graph.vertices
+  		relation <- friends.collect
+  		
+  		//if person._1 == relation.srcId // || person._1 == relation.dstId
+    } println("person._1:" + person._1 + " relation.srcId:" + relation.srcId + " relation.dstId:" + relation.dstId)
+    
+    println("---- Friends ----------")
+    //filtered.foreach(f => println(f._2))
+        
 }
 
 
