@@ -46,10 +46,10 @@ object RecordLinkage_2 extends Serializable {
 		val parsed = noheader.map(line => parse(line))
 				.filter(line => (Int.MinValue != line.id1) && (Int.MinValue != line.id2))
 				// filtering out all id NumberFormatExceptions
-				
 		parsed.cache()
 		val matchCounts = parsed.map(md => md.matched).countByValue
 		val matchCountsSeq = matchCounts.toSeq
+		
 		// Histogram
 		matchCountsSeq.sortBy(_._2).foreach(println)
 		
@@ -59,12 +59,49 @@ object RecordLinkage_2 extends Serializable {
 			parsed.map(md => md.scores(i)).filter(!isNaN(_)).stats()
 		})
 		stats.foreach(println)
+
+		val nasRDD = parsed.map(md => {
+			md.scores.map(d => NAStatCounter(d))
+		})
+		val reduced = nasRDD.reduce((n1, n2) => {
+			n1.zip(n2).map { case (a, b) => a.merge(b) }
+		})
+		reduced.foreach(println)
+		
+		// THIS IS BLOWING UP -- java.util.NoSuchElementException: next on empty iterator
+		val statsm = statsWithMissing(parsed.filter(_.matched).map(_.scores)) 
+		val statsn = statsWithMissing(parsed.filter(!_.matched).map(_.scores))
+		
+		println("======== statsWithMissing function call =======")
+		
+		statsm.zip(statsn).map { case(m, n) =>
+			(m.missing + n.missing, m.stats.mean - n.stats.mean)
+		}.foreach(println)
+		
 		
 	} // end main
 	
-	/* Parsing helpers */
+	// Runs a couple of iterations and then
+	// GETTING java.util.NoSuchElementException: next on empty iterator
+	def statsWithMissing(rdd: RDD[Array[Double]]): Array[NAStatCounter] = {
+		val nastats = rdd.mapPartitions((iter: Iterator[Array[Double]]) => {
+			// check iter not empty!
+				val nas: Array[NAStatCounter] = iter.next().map(d => {
+					NAStatCounter(d)
+				})
+				iter.foreach(arr => {
+					nas.zip(arr).foreach { case (n, d) => n.add(d) }
+				})
+				Iterator(nas)
+		})
+		nastats.reduce((n1, n2) => {
+			n1.zip(n2).map { case (a, b) => a.merge(b) }
+		})
+	}
 	
-	def toDouble(s: String) = {
+	/* ----- Parsing helpers ----- */
+	
+	def toDouble(s: String): Double = {
 		if ("?".equals(s)) { Double.NaN }
 		else {
 			try {
@@ -72,15 +109,18 @@ object RecordLinkage_2 extends Serializable {
 			} catch { case e:NumberFormatException => Double.NaN }
 		}
 	}
-	def toInt(s: Array[String], index: Int) = {
+	def toInt(s: Array[String], index: Int): Int = {
 		try {
 			s(index).toInt
 		} catch { 
-		  	case nfe:NumberFormatException => Int.MinValue
+		  	case nfe:NumberFormatException => {
+		  		//println("=====> bad s: " + s(index))
+		  		Int.MinValue
+		  	}
 		  	case aoe:ArrayIndexOutOfBoundsException => Int.MinValue
 		}
 	}
-	def toBoolean(s: Array[String], index: Int) = {
+	def toBoolean(s: Array[String], index: Int): Boolean = {
 		try {
     	  	  	s(index).toBoolean
   	  	} catch {
