@@ -3,6 +3,9 @@ package oreilly.advancedanalytics.ch2
 import org.apache.spark.{SparkConf, SparkContext}
 import org.apache.spark.SparkContext._
 import org.apache.spark.rdd.RDD
+import org.apache.spark.util.StatCounter
+
+import java.lang.Double.isNaN
 
 // https://github.com/sryza/aas/blob/master/ch02-intro/src/main/scala/com/cloudera/datascience/intro/RunIntro.scala
 
@@ -29,7 +32,6 @@ object RecordLinkage_2 extends Serializable {
 		}
 	  
 		def isHeader(line: String) = line.contains("id_1")
-	  
 		val noheader = rawblocks.filter(x => !isHeader(x))
 	  
 		def parse(line: String) = {
@@ -42,10 +44,22 @@ object RecordLinkage_2 extends Serializable {
 		}
 	  
 		val parsed = noheader.map(line => parse(line))
+				.filter(line => (Int.MinValue != line.id1) && (Int.MinValue != line.id2))
+				// filtering out all id NumberFormatExceptions
+				
 		parsed.cache()
 		val matchCounts = parsed.map(md => md.matched).countByValue
 		val matchCountsSeq = matchCounts.toSeq
+		// Histogram
 		matchCountsSeq.sortBy(_._2).foreach(println)
+		
+		// ------ stats ------------------------- //
+		
+		val stats = (0 until 9).map(i => {
+			parsed.map(md => md.scores(i)).filter(!isNaN(_)).stats()
+		})
+		stats.foreach(println)
+		
 	} // end main
 	
 	/* Parsing helpers */
@@ -69,10 +83,10 @@ object RecordLinkage_2 extends Serializable {
 	def toBoolean(s: Array[String], index: Int) = {
 		try {
     	  	  	s(index).toBoolean
-	  	  	} catch {
-	  	  		case aioe:ArrayIndexOutOfBoundsException => false
-	  	  		case	 iae:IllegalArgumentException => false	
-	  	  	}
+  	  	} catch {
+  	  		case aioe:ArrayIndexOutOfBoundsException => false
+  	  		case	 iae:IllegalArgumentException => false	
+  	  	}
 	}
 }
 
