@@ -15,6 +15,7 @@ case class MatchData(id1: Int, id2: Int,
 object RecordLinkage_2 extends Serializable {
 
 	def main(args: Array[String]): Unit = {
+	  
 		val sc = new SparkContext("local", "RecordLinkage_2", System.getenv("SPARK_HOME"))
 	  
 		val rawblocks = sc.textFile("../../Spark/workspace_tuts/Advanced_Analytics_with_Spark_workspace_1/linkage")
