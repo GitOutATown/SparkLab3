@@ -9,8 +9,7 @@ import java.lang.Double.isNaN
 
 // https://github.com/sryza/aas/blob/master/ch02-intro/src/main/scala/com/cloudera/datascience/intro/RunIntro.scala
 
-case class MatchData(id1: Int, id2: Int,
-  scores: Array[Double], matched: Boolean)
+case class MatchData(id1: Int, id2: Int, scores: Array[Double], matched: Boolean)
 
 object RecordLinkage_2 extends Serializable {
 
@@ -25,14 +24,14 @@ object RecordLinkage_2 extends Serializable {
 		rawblocks_take_10.foreach(println)
 	  
 		val sampleLine = rawblocks_take_10(5)
-		val samplePieces = sampleLine.split(",")
+		val samplePieces = sampleLine.split(',')
 	  
 		println("==== sampleLine samplePieces:")
 		for(i <- 0 until samplePieces.length) {
 			println(i + ": " + samplePieces(i))
 		}
 	  
-		val noheader = rawblocks.filter(x => !isHeader(x))
+		val noheader = rawblocks.filter(!isHeader(_))
 	  
 		val parsed = noheader.map(line => parse(line))
 				.filter(line => (Int.MinValue != line.id1) && (Int.MinValue != line.id2))
@@ -104,33 +103,31 @@ object RecordLinkage_2 extends Serializable {
 	/* ----- Parsing helpers ----- */
 	
 	def toDouble(s: String): Double = {
-		if ("?".equals(s)) { Double.NaN }
-		else {
-			try {
-				s.toDouble
-			} catch { case e:NumberFormatException => Double.NaN }
+		try {
+			if ("?".equals(s)) Double.NaN
+			else s.toDouble
+		} catch { 
+		  	case nfe: NumberFormatException => Double.NaN
+			case aiobe: ArrayIndexOutOfBoundsException => Double.NaN
 		}
 	}
 	
 	def toInt(s: Array[String], index: Int): Int = {
 		try {
 			s(index).toInt
-		} catch { 
-		  	case nfe:NumberFormatException => {
-		  		//println("=====> bad s: " + s(index))
-		  		Int.MinValue
-		  	}
-		  	case aoe:ArrayIndexOutOfBoundsException => Int.MinValue
+		} catch {
+		  	case nfe: NumberFormatException => Int.MinValue
+		  	case aobe: ArrayIndexOutOfBoundsException => Int.MinValue
 		}
 	}
 	
 	def toBoolean(s: Array[String], index: Int): Boolean = {
 		try {
-    	  	  	s(index).toBoolean
-  	  	} catch {
-  	  		case aioe:ArrayIndexOutOfBoundsException => false
-  	  		case	 iae:IllegalArgumentException => false	
-  	  	}
+			s(index).toBoolean
+		} catch {
+		  	case aiobe: ArrayIndexOutOfBoundsException => false
+		  	case iae: IllegalArgumentException => false
+		}
 	}
 }
 
