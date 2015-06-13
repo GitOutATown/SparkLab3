@@ -9,7 +9,7 @@ object KeyValue_lab_3 {
         val conf = new SparkConf().setAppName("SimpleApp").setMaster("local")
         val sc = new SparkContext(conf)
         
-        val pairs = sc.parallelize(List((1, 2), (4, 6), (3, 6), (3, 4)))
+        val pairs = sc.parallelize(List((1, 2), (4, 6), (3, 6), (1, 3), (3, 4)))
         val other = sc.parallelize(List((3, 9)))
         
         //// Transformations on one pair RDD ////
@@ -19,20 +19,25 @@ object KeyValue_lab_3 {
         println("===>reduceByKey:")
         combined.foreach(println(_))
         
-        // RDD[(Int, Iterable[Int])]
+        // RDD[(K, Iterable[V])] // in this case, RDD[(Int, Iterable[Int])]
         val grouped = pairs.groupByKey()
         println("===>groupByKey:")
         grouped.foreach(println(_))
         
-        // RDD[(Int, U)]
+        // RDD[(Int, U)] // in this case, RDD[(Int, String)]
         val mapped = pairs.mapValues(v => "value * 10: " + (v * 10))
         println("===>mapValues:")
         mapped.foreach(println(_))
         
+        // RDD[(Int, U)] // in this case, RDD[(Int, Range.Inclusive)]
+        val mappedRange = pairs.mapValues(v => (v to 5))
+        println("===>mappedRange:")
+        mappedRange.foreach(println(_))
+        
         // (f: Int => TraversableOnce[U]): RDD[(Int, U)]
-        val flatMapped = pairs.flatMapValues(v => (v to 5))
-        println("===>flatMapValues:")
-        flatMapped.foreach(println(_))
+        val flatMappedRange = pairs.flatMapValues(v => (v to 5))
+        println("===>flatMappedRange:")
+        flatMappedRange.foreach(println(_))
         
         val keys = pairs.keys
         println("===>keys:")

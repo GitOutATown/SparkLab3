@@ -30,9 +30,7 @@ object api_lab_1 {
         listRDD.setName("Henry")
         //println("listRDD.toDebugString: " + listRDD.toDebugString)
         
-        def subt(value: Int) = {
-            value - 1
-        }
+        def subt(value: Int) = value - 1
         
         val subtRDD = rangeRDD.map(subt)
         println("subtRDD.toDebugString: " + subtRDD.toDebugString)
@@ -41,28 +39,30 @@ object api_lab_1 {
         //println(collected.length)
         //println("subtRDD.count: " + subtRDD.count)
         
-        def lessThanTen(value: Int): Boolean = {
-            value < 10
-        }
+        def lessThanTen(value: Int): Boolean = value < 10
         val filtered = subtRDD.filter(lessThanTen)
         filtered.collect
         
         // In line, chained, more compact and expressive
         subtRDD.filter(_ < 10).collect
         
+        val takenOrdered = filtered.takeOrdered(4)
+        val reverseOrdered = filtered.takeOrdered(4)(Ordering.by(i => i * -1))
+        val toppermost = filtered.top(4)
+        
         /*
-        println("filtered.takeOrdered(4): " + (filtered.takeOrdered(4)).mkString(" "))
+        println("filtered.takeOrdered(4): " + takenOrdered.mkString(" "))
         println("filtered.takeOrdered(4) reversed: " + 
-            (filtered.takeOrdered(4)(Ordering.by(i => i * -1))).mkString(" "))
-        println("filtered.top(4): " + (filtered.top(4)).mkString(" "))
+            reverseOrdered.mkString(" "))
+        println("filtered.top(4): " + toppermost.mkString(" "))
         */
         
-        val filteredSummed = filtered.reduce((v1, v2) => v1 + v2)
-        //println("filteredSummed: " + filteredSummed)
+        val reduced = filtered.reduce((v1, v2) => v1 + v2)
+        //println("reduced: " + reduced)
         
         val sample = rangeRDD.sample(true, .02)
         val collectedSample = sample.collect()
-        println(collectedSample.mkString(" "))
+        //println(collectedSample.mkString(" "))
     }
 
 }

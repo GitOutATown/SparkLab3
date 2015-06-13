@@ -7,10 +7,10 @@ object KeyValue_lab_2 {
 
     def main(args: Array[String]): Unit = {
         
-        val filePath = "resources/README_sample_text.md"
         val conf = new SparkConf().setAppName("SimpleApp").setMaster("local")
         val sc = new SparkContext(conf)
         
+        val filePath = "resources/README_sample_text.md"
         val textData = sc.textFile(filePath, 2)
         
         // Creating RDD[(String, String)] with first word of line as key
@@ -32,20 +32,30 @@ object KeyValue_lab_2 {
         
         val combined = pairsCached.reduceByKey((x, y) => 
             "\nline >>>" + x + "\nline >>>" + y)
-        println("====> combined")
+        println("====> reduceByKey")
         combined.take(10).foreach(println(_))
         
+        // Word count for document
+        val words = textData.flatMap { line => line.split(" ") }
+        val wordCount_v1 = words.map(word => 
+            (word, 1)).reduceByKey((w1, w2) => w1 + w2)
+        println("wordCount_v1: " + wordCount_v1)
+        
+        // Instance count for each word in the document
+        val wordCount_v2 = textData.flatMap(x => x.split(" ")).countByValue()
+        println("wordCount_v2: " + wordCount_v2)
+        
         val grouped = pairsCached.groupByKey()
-        println("====> grouped")
+        println("====> groupByKey")
         grouped.take(10).foreach(println(_))
         
         val sameKey = pairsCached.mapValues(line => line)
-        println("====> sameKey")
+        println("====> mapValues")
         sameKey.take(10).foreach(println(_))
         
         val filtered = pairsCached.filter{case (k,v) => 
             v.length > 1 && v.length < 20}
-        println("===>filtered:")
+        println("===>filter:")
         filtered.take(10).foreach(println(_))
     }
 }
