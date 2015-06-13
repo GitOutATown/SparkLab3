@@ -3,7 +3,7 @@ package oreilly.learningspark.ch4_keyvalue
 import org.apache.spark._
 import org.apache.spark.SparkContext._
 
-object combineByValue_lab_2 {
+object combineByKey_lab_2 {
     
     def main(args: Array[String]): Unit = {
         
