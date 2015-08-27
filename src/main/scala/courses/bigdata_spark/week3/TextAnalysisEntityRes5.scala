@@ -66,7 +66,7 @@ object TextAnalysisEntityRes5 {
             val valid = raw.filter(record => record match{
                 case Right(record) => true
                 case Left(record) => false
-            }).cache
+            }).map(record => record.right.get).cache
             
             val rawCount = raw.count()
             val failedCount = failed.count()
@@ -83,7 +83,7 @@ object TextAnalysisEntityRes5 {
         
         // Examine
         googleSmallData.take(3) foreach{
-            line => println(line.right.get._1 + ": " + line.right.get._2) 
+            record => println(record._1 + ": " + record._2) 
         }
         
     }
