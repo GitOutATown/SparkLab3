@@ -2,9 +2,10 @@ package courses.bigdata_spark.week3
 
 import org.apache.spark._
 import org.apache.spark.SparkContext._
+import org.apache.spark.rdd.RDD
 import scala.util.matching.Regex
 
-object TextAnalEntityRes_4 {
+object TextAnalysisEntityRes4 {
     
     def main(args: Array[String]): Unit = {
         
@@ -16,6 +17,7 @@ object TextAnalEntityRes_4 {
         val resource_path = "src/main/scala/courses/bigdata_spark/data/er/"
         
         // Data files
+        val GOOGLE = "Google.csv"   
         val GOOGLE_SMALL = "Google_small.csv"
         val AMAZON = "Amazon.csv"
         val AMAZON_SMALL = "Amazon_small.csv"
@@ -55,7 +57,7 @@ object TextAnalEntityRes_4 {
             sc.textFile(filePath).map(line => parseDataFileLine(line, dataFilePattern))
         }
         
-        def loadData(filePath: String) = {
+        def loadData(filePath: String): RDD[RecordContent] = {
             val raw = parseData(filePath)
             
             val failed = raw.filter(record => record.flag == -1).map(record => record.record)
@@ -67,10 +69,14 @@ object TextAnalEntityRes_4 {
             val failedCount = failed.count()
             val validCount = valid.count()
             
-            println(s"Read $rawCount lines, successfully parsed $validCount lines, failed to parse $failedCount lines")
+            println(s"$filePath -> Read $rawCount lines, successfully parsed $validCount lines, failed to parse $failedCount lines")
+            valid
         }
         
-        val googleSmall = loadData(resource_path + GOOGLE_SMALL)
+        val googleSmallData = loadData(resource_path + GOOGLE_SMALL)
+        val googleData = loadData(resource_path + GOOGLE)
+        val amazonSmallData = loadData(resource_path + AMAZON_SMALL)
+        val amazonData = loadData(resource_path + AMAZON)
         
     }
     
