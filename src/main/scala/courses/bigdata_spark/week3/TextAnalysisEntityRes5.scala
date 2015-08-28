@@ -85,6 +85,18 @@ object TextAnalysisEntityRes5 {
         googleSmallData.take(3) foreach{
             record => println(record._1 + ": " + record._2) 
         }
+        println
+        googleData.take(3) foreach{
+            record => println(record._1 + ": " + record._2) 
+        }
+        println
+        amazonSmallData.take(3) foreach{
+            record => println(record._1 + ": " + record._2) 
+        }
+        println
+        amazonData.take(3) foreach{
+            record => println(record._1 + ": " + record._2) 
+        }
         
     }
     
